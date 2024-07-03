@@ -18,15 +18,20 @@ class TestUtils(unittest.TestCase):
 
         input = "***italics*bold**"
         expected_nodes = [TextNode([TextNode("italics", "italics"),TextNode("bold","text")],"bold")]
-
         self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
 
     def test_extract_markdown_links(self):
-        input = "[link](https://www.example.com) This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
-        expected = (["", " This is text with a ", " and ", ""], [("link", "https://www.example.com"), ("link", "https://www.example.com"), ("another", "https://www.example.com/another")])
-
+        input = "[link](https://www.example.com) This is text with a [link](https://www.example.com) and [another](https://www.example.com/another) and an ![image](https://www.example.com/image.png)"
+        expected = (["", " This is text with a ", " and ", " and an ![image](https://www.example.com/image.png)"], [("link", "https://www.example.com"), ("link", "https://www.example.com"), ("another", "https://www.example.com/another")])
         self.assert_in_out(utils.extract_markdown_links, input, expected)
+     
+    def test_extract_markdown_links(self):
+        input = "![image](https://www.example.com/image.png) This is text with a ![image2](https://www.example.com/image2.png) and ![another](https://www.example.com/another.png) and a [link](https://www.example.com)"
+        expected = (["", " This is text with a ", " and ", " and a [link](https://www.example.com)"], [("image", "https://www.example.com/image.png"), ("image2", "https://www.example.com/image2.png"), ("another", "https://www.example.com/another.png")])
+        self.assert_in_out(utils.extract_markdown_images, input, expected)
         
+
+   
 
 
 if __name__ == "__main__":
