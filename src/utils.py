@@ -1,3 +1,5 @@
+import re
+
 from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
@@ -102,4 +104,16 @@ def split_string_to_text_nodes(input_string):
         current_results.append(TextNode(input_string[current_result_tail:len(input_string)], "text"))
     return current_results
 
+def extract_markdown_images(input_string):
+    image_markdown_regex = r"!\[(.*?)\]\((.*?)\)"
+    image_markdown_non_capturing = r"!\[(?:.*?)\]\((?:.*?)\)"
+    matches = re.findall(image_markdown_regex, input_string)
+    image_split = re.split(image_markdown_non_capturing, input_string)
+    return image_split, matches
 
+def extract_markdown_links(input_string):
+    link_markdown_regex = r"(?<!!)\[(.*?)\]\((.*?)\)"
+    link_markdown_non_capturing = r"(?<!!)\[(?:.*?)\]\((?:.*?)\)"
+    matches = re.findall(link_markdown_regex, input_string)
+    link_split = re.split(link_markdown_non_capturing, input_string)
+    return link_split, matches

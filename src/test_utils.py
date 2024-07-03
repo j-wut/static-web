@@ -21,6 +21,13 @@ class TestUtils(unittest.TestCase):
 
         self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
 
+    def test_extract_markdown_links(self):
+        input = "[link](https://www.example.com) This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+        expected = (["", " This is text with a ", " and ", ""], [("link", "https://www.example.com"), ("link", "https://www.example.com"), ("another", "https://www.example.com/another")])
+
+        self.assert_in_out(utils.extract_markdown_links, input, expected)
+        
+
 
 if __name__ == "__main__":
     unittest.main()
