@@ -67,6 +67,8 @@ def split_string_to_text_nodes(input_string):
                     current_result_head = head_node.head
                     current_result_tail = tail_node.tail
                 else:
+                    if current_results and current_result_tail < head_node.head:
+                        current_results.append(TextNode(input_string[current_result_tail:head_node.head], "text"))
                     current_results.append(TextNode(input_string[head_node.tail:tail_node.head], SYMMETRICAL_DELIMITERS[head_node.delim]))
                     current_result_head = min(current_result_head, head_node.head)
                     current_result_tail = max(current_result_tail, tail_node.tail)
@@ -86,7 +88,7 @@ def split_string_to_text_nodes(input_string):
                         delimiter_stack.pop()
                     head_node = delimiter_stack.pop()
                     if current_results and head_node.head < current_result_head:
-                        if current_result_head > head_node.tail:
+                        if current_result_head > head_node.tail: #
                             current_results.insert(0,TextNode(input_string[head_node.tail:current_result_head], "text"))
                         if current_result_tail < tail_node.head:
                             current_results.append(TextNode(input_string[current_result_tail:tail_node.head], "text"))
@@ -94,12 +96,16 @@ def split_string_to_text_nodes(input_string):
                         current_result_head = head_node.head
                         current_result_tail = tail_node.tail
                     else:
+                        if current_results and current_result_tail < head_node.head:
+                            current_results.append(TextNode(input_string[current_result_tail, head_node.head], "text"))
                         current_results.append(TextNode(input_string[head_node.tail,tail_node.head], SYMMETRICAL_DELIMITERS[head_node.delim]))
                         current_result_head = min(current_result_head, head_node.head)
                         current_result_tail = max(current_result_tail, tail_node.tail)
                 delimiter_stack.append(DelimStackNode(delim, t, t+i-1))
                 t += i - 1
                 break
+    if current_result_head > current_result_tail:
+        return [TextNode(input_string, "text")]
     if current_result_head > 0:
         current_results.insert(0,TextNode(input_string[0:current_result_head], "text"))
     if current_result_tail < len(input_string):
@@ -126,7 +132,7 @@ def split_string_images(input_string):
     if image_nodes:
         text_nodes = [split_string_to_text_nodes(text) for text in split_by_images]
         return [node for node in weave(text_nodes, image_nodes) if node]
-
+    return input_string
     
 def split_string_links(input_string):
     split_by_links, links = extract_markdown_links(input_string)
@@ -134,19 +140,25 @@ def split_string_links(input_string):
     if link_nodes:
         text_nodes = [split_string_to_text_nodes(text) for text in split_by_links]
         return [node for node in weave(text_nodes, link_nodes) if node]
+    return input_string
 
 def process_list_text_node(process, nodes):
     results = []
     for node in nodes:
         if type(node) is list:
             results.append(process_list_text_node(process, node))
+        elif type(node.text) is list:
+            results.append(TextNode(process_list_text_node(process, node.text), node.text_type, node.url))
         else:
-            processed = process(nodes.text)
+            processed = process(node.text)
             results.append(TextNode(processed, node.text_type, node.url) if type(processed) is list else node)
     return results
 
 def convert_string_to_text_nodes(input_string):
     nested_text_nodes = split_string_to_text_nodes(input_string)
+    # print(f"nested:{nested_text_nodes}")
     with_links = process_list_text_node(split_string_links, nested_text_nodes)
+    # print(f"with_links:{with_links}")
     with_images = process_list_text_node(split_string_images, with_links)
+    # print(f"with_images:{with_links}")
     return with_images

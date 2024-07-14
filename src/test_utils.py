@@ -30,6 +30,18 @@ class TestUtils(unittest.TestCase):
         expected_nodes = [TextNode([TextNode("italics", "italics"),TextNode("bold","text")],"bold")]
         self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
 
+        input = " "
+        expected_nodes = [TextNode(" ", "text")]
+        self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
+
+        input = "*italics* **bold** "
+        expected_nodes = [TextNode("italics", "italics"), TextNode(" ", "text"), TextNode("bold", "bold"), TextNode(" ", "text")]
+        self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
+
+        input = " *italics* **bold**"
+        expected_nodes = [TextNode(" ", "text"), TextNode("italics", "italics"), TextNode(" ", "text"), TextNode("bold", "bold")]
+        self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
+
     def test_split_string_images(self):
         input = "**This is a text node** ![image](https://www.example.com/image.png)"
         expected_nodes = [[TextNode("This is a text node", "bold"), TextNode(" ", "text")], TextNode("image", "image", "https://www.example.com/image.png")]
@@ -40,10 +52,14 @@ class TestUtils(unittest.TestCase):
         expected_nodes = [[TextNode("italics", "italics"),  TextNode(" ", "text")],  TextNode("link", "link", "https://www.example.com/")]
         self.assert_in_out(utils.split_string_links, input, expected_nodes)
 
-        # input = "***italics*bold**"
-        # expected_nodes = [TextNode([TextNode("italics", "italics"),TextNode("bold","text")],"bold")]
-        # self.assert_in_out(utils.split_string_to_text_nodes, input, expected_nodes)
-        
+    def test_convert_string_to_text_nodes(self):
+        input = "*italics* [link](https://www.example.com/)"
+        expected_nodes = [TextNode("italics", "italics"),  TextNode([[TextNode(" ", "text")],  TextNode("link", "link", "https://www.example.com/")], "text")]
+        self.assert_in_out(utils.convert_string_to_text_nodes, input, expected_nodes)
+
+        input = "*italics* **[link](https://www.example.com/)**"
+        expected_nodes = [TextNode("italics", "italics"),  TextNode(" ", "text"), TextNode([TextNode("link", "link", "https://www.example.com/")], "bold")]
+        self.assert_in_out(utils.convert_string_to_text_nodes, input, expected_nodes)
 
    
 

@@ -5,7 +5,8 @@ class TextNode:
         self.url = url
 
     def __eq__(self, other):
-        return self.text == other.text \
+        return type(self) == type(other) \
+                and self.text == other.text \
                 and self.text_type == other.text_type \
                 and self.url == other.url
 
