@@ -13,3 +13,20 @@ class TextNode:
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
 
+    def to_markdown(self):
+        selftext= self.text if type(self.text) is not list else "".join([child.to_markdown() for child in self.text])
+        match self.text_type:
+            case "text":
+                return selftext
+            case "bold":
+                return f"**{selftext}**"
+            case "italic":
+                return f"*{selftext}*"
+            case "code":
+                return f"`{selftext}`"
+            case "link":
+                return f"[{selftext}]({self.url})"
+            case "image":
+                return f"![{selftext}]({self.url})"
+            case _:
+                raise ValueError("Unhandled Text Type")
