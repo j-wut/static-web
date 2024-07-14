@@ -12,22 +12,40 @@ ASYMMETRICAL_DELIMITERS = {"{":"}", "[":"]"}
 ASYMMETRICAL_DELIMITERS.update({v:k for k,v in ASYMMETRICAL_DELIMITERS.items()})
 ALL_DELIMITERS = {**SYMMETRICAL_DELIMITERS, **ASYMMETRICAL_DELIMITERS}
 
+def text_node_to_markdown(text_node):
+    return 
+
 def text_node_to_html_node(text_node):
-    match text_node.text_type:
-        case "text":
-            return LeafNode(None, text_node.text)
-        case "bold":
-            return LeafNode("b", text_node.text)
-        case "italic":
-            return LeafNode("i", text_node.text)
-        case "code":
-            return LeafNode("code", text_node.text)
-        case "link":
-            return LeafNode("a", text_node.text, {"href": text_node.url})
-        case "image":
-            return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
-        case _:
-            raise ValueError("Unhandled Text Type")
+    if type(text_node.text) is list:
+        match text_node.text_type:
+            case "text":
+                return ParentNode(None, text_node.text)
+            case "bold":
+                return ParentNode("b", text_node.text)
+            case "italic":
+                return ParentNode("i", text_node.text)
+            case "code":
+                return LeafNode("code", "".join([child.to_markdown() for child in text_node.text]))
+            case "link":
+                return ParentNode("a", text_node.text, {"href": text_node.url})
+            case _:
+                raise ValueError("Unhandled Text Type")
+    else:
+        match text_node.text_type:
+            case "text":
+                return LeafNode(None, text_node.text)
+            case "bold":
+                return LeafNode("b", text_node.text)
+            case "italic":
+                return LeafNode("i", text_node.text)
+            case "code":
+                return LeafNode("code", text_node.text)
+            case "link":
+                return LeafNode("a", text_node.text, {"href": text_node.url})
+            case "image":
+                return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
+            case _:
+                raise ValueError("Unhandled Text Type")
 
 def weave(l1, l2):
     return [item for i in range(max(len(l1),len(l2))) for item in [*l1[i:i+1],*l2[i:i+1]]]
