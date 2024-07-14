@@ -29,13 +29,15 @@ def text_node_to_html_node(text_node):
         case _:
             raise ValueError("Unhandled Text Type")
 
+def weave(l1, l2):
+    return [item for i in range(max(len(l1),len(l2))) for item in [*l1[i:i+1],*l2[i:i+1]]]
+
 # single_single
 # double_single_ = split double -> single, single_single
 # double_single_single = split first double -> single,single_single,_single
 # double_double = don't split, since we can see the matching double
 # double_triple = split the triple, leftover single after
 # double_single_double = split first double to match next single, then single matches the first of the split, leftover single ie: single,single_single,_single, single
-
 def split_string_to_text_nodes(input_string):
     class DelimStackNode():
         def __init__(self, delim, head, tail):
@@ -117,3 +119,34 @@ def extract_markdown_links(input_string):
     matches = re.findall(link_markdown_regex, input_string)
     link_split = re.split(link_markdown_non_capturing, input_string)
     return link_split, matches
+
+def split_string_images(input_string):
+    split_by_images, images = extract_markdown_images(input_string)
+    image_nodes = [TextNode(image[0], "image", image[1]) for image in images]
+    if image_nodes:
+        text_nodes = [split_string_to_text_nodes(text) for text in split_by_images]
+        return [node for node in weave(text_nodes, image_nodes) if node]
+
+    
+def split_string_links(input_string):
+    split_by_links, links = extract_markdown_links(input_string)
+    link_nodes = [TextNode(link[0], "link", link[1]) for link in links]
+    if link_nodes:
+        text_nodes = [split_string_to_text_nodes(text) for text in split_by_links]
+        return [node for node in weave(text_nodes, link_nodes) if node]
+
+def process_list_text_node(process, nodes):
+    results = []
+    for node in nodes:
+        if type(node) is list:
+            results.append(process_list_text_node(process, node))
+        else:
+            processed = process(nodes.text)
+            results.append(TextNode(processed, node.text_type, node.url) if type(processed) is list else node)
+    return results
+
+def convert_string_to_text_nodes(input_string):
+    nested_text_nodes = split_string_to_text_nodes(input_string)
+    with_links = process_list_text_node(split_string_links, nested_text_nodes)
+    with_images = process_list_text_node(split_string_images, with_links)
+    return with_images
